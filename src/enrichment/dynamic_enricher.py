@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 from src.config import env
 from src.db import utc_now as now
+from src.ops.safe_http import safe_get
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -548,7 +549,15 @@ def structured_company_matches(jsonld_items, expected_company):
 
 def fetch_direct_linkedin_job(url: str):
     """Directly fetch full job description from public LinkedIn job URL."""
-    if not url or "linkedin.com/jobs/view" not in url:
+    if not url:
+        return None
+    try:
+        parsed = urlparse(url)
+        if (parsed.scheme != "https" or parsed.hostname not in {"linkedin.com", "www.linkedin.com"}
+                or parsed.username is not None or parsed.password is not None
+                or parsed.port not in {None, 443} or not parsed.path.startswith("/jobs/view/")):
+            return None
+    except ValueError:
         return None
     headers = {
         "User-Agent": (
@@ -558,7 +567,7 @@ def fetch_direct_linkedin_job(url: str):
         "Accept-Language": "en-US,en;q=0.9,de;q=0.8,tr;q=0.7",
     }
     try:
-        r = requests.get(url, headers=headers, timeout=12)
+        r = safe_get(url, headers=headers, timeout=12)
         if r.status_code != 200:
             if r.status_code == 429:
                 print(f"[Dynamic Enricher] Rate limited (429) fetching LinkedIn job: {url}")

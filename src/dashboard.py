@@ -281,9 +281,9 @@ def get_job_assets_index():
     out_dir = ROOT / "output"
     if out_dir.exists():
         for d in sorted(out_dir.iterdir(), key=lambda p: p.stat().st_mtime if p.exists() else 0):
-            if d.is_dir():
+            if d.is_dir() and not d.is_symlink() and d.resolve().parent == out_dir.resolve():
                 for sub in sorted(d.iterdir(), key=lambda p: p.stat().st_mtime if p.exists() else 0):
-                    if sub.is_dir():
+                    if sub.is_dir() and not sub.is_symlink() and sub.resolve().parent == d.resolve():
                         parts = sub.name.split("_")
                         if len(parts) >= 2 and parts[-1].isdigit():
                             try:
@@ -557,7 +557,8 @@ elif selected_mode == "Belgelerim":
     vault_dir = ROOT / "vault"
     vault_dir.mkdir(parents=True, exist_ok=True)
     existing_files = sorted(
-        list(vault_dir.glob("*.pdf")) + list(vault_dir.glob("*.png")) + list(vault_dir.glob("*.jpg"))
+        f for pattern in ("*.pdf", "*.png", "*.jpg") for f in vault_dir.glob(pattern)
+        if f.is_file() and not f.is_symlink() and f.resolve().parent == vault_dir.resolve()
     )
 
     v_c1, v_c2 = st.columns([3, 1.2])
@@ -596,18 +597,17 @@ elif selected_mode == "Belgelerim":
                 header = bytes(buf[:8])
 
                 # MIME Magic byte validation (PDF: %PDF, PNG: \x89PNG, JPG: \xff\xd8\xff)
-                is_valid_type = (
-                    header.startswith(b"%PDF")
-                    or header.startswith(b"\x89PNG\r\n\x1a\n")
-                    or header.startswith(b"\xff\xd8\xff")
-                )
+                signatures = {".pdf": b"%PDF", ".png": b"\x89PNG\r\n\x1a\n", ".jpg": b"\xff\xd8\xff"}
+                suffix = Path(up.name).suffix.lower()
+                is_valid_type = suffix in signatures and header.startswith(signatures[suffix]) and len(buf) <= 20 * 1024 * 1024
 
                 if not is_valid_type:
                     st.error("Güvenlik Uyarısı: Yüklenen dosyanın içeriği belirtilen formatla (PDF/PNG/JPG) eşleşmiyor.")
                 else:
                     safe_filename = Path(up.name).name
                     save_p = (vault_dir / safe_filename).resolve()
-                    if not str(save_p).startswith(str(vault_dir.resolve())):
+                    if (save_p.parent != vault_dir.resolve() or ":" in safe_filename
+                            or "\\" in safe_filename or (vault_dir / safe_filename).is_symlink()):
                         st.error("Güvenlik Uyarısı: Geçersiz dosya adı tespit edildi.")
                         st.stop()
                     with open(save_p, "wb") as of:

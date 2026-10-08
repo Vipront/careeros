@@ -343,7 +343,7 @@ def render_detail(row, services):
     if panel.open:
         with panel:
             folder = services["get_job_assets_index"]().get(job_id)
-            files = sorted(f for f in folder.iterdir() if f.is_file() and f.suffix in {".pdf", ".docx", ".txt", ".json"}) if folder and folder.exists() else []
+            files = sorted(f for f in folder.iterdir() if f.is_file() and not f.is_symlink() and f.resolve().parent == folder.resolve() and f.suffix in {".pdf", ".docx", ".txt", ".json"}) if folder and folder.exists() else []
             if not files:
                 st.caption("Bu ilan için henüz özel CV veya ön yazı üretilmemiş.")
             for file in files:
