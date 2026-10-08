@@ -10,7 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 from src.config import env
 from src.db import utc_now as now
-from src.ops.safe_http import safe_get
+from src.ops.safe_http import SafeHTTPError, iter_content, safe_get
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -98,33 +98,34 @@ def linkedin_job_id(url):
     m = re.search(r"/jobs/view/(\d+)", url or "")
     return m.group(1) if m else None
 
-def fetch_diagnostic(url):
+def _fetch_html(url, *, headers=None, timeout=TIMEOUT):
+    response = None
     try:
-        r = requests.get(
-            url, headers=HEADERS, timeout=TIMEOUT, allow_redirects=True
-        )
-        if r.status_code != 200:
-            return None, None, f"http_{r.status_code}"
-        if "text/html" not in r.headers.get("content-type", "").lower():
+        response = safe_get(url, headers=headers or HEADERS, timeout=timeout)
+        if response.status_code != 200:
+            return None, None, f"http_{response.status_code}"
+        if "text/html" not in response.headers.get("Content-Type", "").lower():
             return None, None, "not_html"
-        return r.url, r.text, "ok"
-    except requests.RequestException as exc:
+        body = bytearray()
+        for chunk in iter_content(response, chunk_size=8192):
+            if len(body) + len(chunk) > 2 * 1024 * 1024:
+                return None, None, "response_too_large"
+            body.extend(chunk)
+        return response.url, body.decode(response.encoding or "utf-8", errors="replace"), "ok"
+    except (requests.RequestException, SafeHTTPError, LookupError) as exc:
         return None, None, f"request_error:{type(exc).__name__}"
+    finally:
+        if response is not None:
+            response.close()
+
+
+def fetch_diagnostic(url):
+    return _fetch_html(url)
 
 
 def fetch(url):
-    try:
-        r = requests.get(
-            url, headers=HEADERS, timeout=TIMEOUT,
-            allow_redirects=True
-        )
-        if r.status_code != 200:
-            return None, None
-        if "text/html" not in r.headers.get("content-type", "").lower():
-            return None, None
-        return r.url, r.text
-    except requests.RequestException:
-        return None, None
+    final_url, body, _ = fetch_diagnostic(url)
+    return final_url, body
 
 def clean_text(html):
     soup = BeautifulSoup(html, "html.parser")
@@ -567,14 +568,11 @@ def fetch_direct_linkedin_job(url: str):
         "Accept-Language": "en-US,en;q=0.9,de;q=0.8,tr;q=0.7",
     }
     try:
-        r = safe_get(url, headers=headers, timeout=12)
-        if r.status_code != 200:
-            if r.status_code == 429:
-                print(f"[Dynamic Enricher] Rate limited (429) fetching LinkedIn job: {url}")
-            else:
-                print(f"[Dynamic Enricher] HTTP {r.status_code} fetching LinkedIn job: {url}")
+        _, body, reason = _fetch_html(url, headers=headers, timeout=12)
+        if body is None:
+            print(f"[Dynamic Enricher] LinkedIn fetch failed: {reason}")
             return None
-        soup = BeautifulSoup(r.text, "html.parser")
+        soup = BeautifulSoup(body, "html.parser")
         desc_el = (
             soup.find("div", class_="show-more-less-html__markup")
             or soup.find("section", class_="show-more-less-html")
