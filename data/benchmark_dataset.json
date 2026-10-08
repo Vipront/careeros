@@ -1,0 +1,88 @@
+[
+  {
+    "id": "BENCH_01",
+    "source": "synthetic",
+    "title": "Research Assistant - Molecular Biology & RNA Lab",
+    "company": "Example Organization 1",
+    "location": "Martinsried, Munich, Germany",
+    "description": "Requirements: B.Sc. or M.Sc. in Molecular Biology. Hands-on laboratory experience with qPCR, Western blotting, RNA/DNA isolation, and mammalian cell culture. Fluent English required. German is a plus.",
+    "human_label": 2,
+    "human_reason": [
+      "strong_wet_lab_match",
+      "qpcr_western_blot",
+      "munich_location",
+      "degree_match"
+    ]
+  },
+  {
+    "id": "BENCH_02",
+    "source": "synthetic",
+    "title": "Junior Computational Chemist - Molecular Docking",
+    "company": "Example Organization 2",
+    "location": "Hamburg, Germany",
+    "description": "Requirements: Degree in Bioinformatics, Computational Biology, or Pharmacy. Experience with AutoDock Vina, structure-based drug design, PDB databases, and Python scripting.",
+    "human_label": 2,
+    "human_reason": [
+      "autodock_vina_match",
+      "thesis_alignment",
+      "drug_design_skills"
+    ]
+  },
+  {
+    "id": "BENCH_03",
+    "source": "synthetic",
+    "title": "Bioinformatics Scientist - Cancer Genomics",
+    "company": "Example Organization 3",
+    "location": "Heidelberg, Germany",
+    "description": "Requirements: M.Sc. in Bioinformatics. Experience analyzing TCGA data, differential expression, survival analysis in R and Python. Knowledge of cancer biology.",
+    "human_label": 2,
+    "human_reason": [
+      "tcga_analysis",
+      "survival_analysis",
+      "cancer_bioinformatics_thesis"
+    ]
+  },
+  {
+    "id": "BENCH_04",
+    "source": "synthetic",
+    "title": "Postdoctoral Fellow - Structural Biology & Cryo-EM",
+    "company": "Example Organization 4",
+    "location": "Heidelberg, Germany",
+    "description": "Requirements: Ph.D. in Structural Biology, Biophysics, or Biochemistry. Proven track record with Cryo-EM data collection and processing.",
+    "human_label": 0,
+    "human_reason": [
+      "phd_required",
+      "overqualified_postdoc",
+      "not_entry_level"
+    ]
+  },
+  {
+    "id": "BENCH_05",
+    "source": "synthetic",
+    "title": "Senior Clinical Project Manager - Oncology",
+    "company": "Example Organization 5",
+    "location": "Basel, Switzerland",
+    "description": "Requirements: 8+ years of clinical trial management experience. MD or Ph.D. preferred. Fluent German and English.",
+    "human_label": 0,
+    "human_reason": [
+      "experience_mismatch_8_years",
+      "clinical_pm_not_technical",
+      "senior_role"
+    ]
+  },
+  {
+    "id": "BENCH_06",
+    "source": "synthetic",
+    "title": "Working Student - Lab Automation & Assay Development",
+    "company": "Example Organization 6",
+    "location": "Hilden, Germany",
+    "description": "Requirements: Enrolled student in Molecular Biology, Biotechnology, or related field. Basic PCR knowledge, willingness to learn automated liquid handling.",
+    "human_label": 2,
+    "human_reason": [
+      "student_eligible",
+      "pcr_basics",
+      "entry_level_match",
+      "industry_experience"
+    ]
+  }
+]

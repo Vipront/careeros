@@ -1,0 +1,29 @@
+[
+  {
+    "case_type": "soft_barrier",
+    "job_id": 1713,
+    "title": "Forskningsassistent i Avancerad läkemedelstillförsel",
+    "llm_score": 52.0,
+    "is_match": false,
+    "expected_status": "low_priority",
+    "rationale": "Strong technical drug design alignment. Soft barrier (M.Sc. preference) results in score >= 40, preserved in low_priority."
+  },
+  {
+    "case_type": "soft_barrier",
+    "job_id": 1718,
+    "title": "Technicien de Laboratoire Contrôle Qualité Biologie",
+    "llm_score": 45.0,
+    "is_match": false,
+    "expected_status": "low_priority",
+    "rationale": "High wet-lab assay match. Soft barrier (1 yr exp, French) results in score >= 40, preserved in low_priority."
+  },
+  {
+    "case_type": "hard_barrier",
+    "job_id": 1722,
+    "title": "Postdoktor i små RNA Biologi",
+    "llm_score": 28.0,
+    "is_match": false,
+    "expected_status": "rejected",
+    "rationale": "Mandatory PhD requirement constitutes an institutional hard barrier. Low score (< 40) safely rejected."
+  }
+]

@@ -1,0 +1,127 @@
+[
+  {
+    "id": "HOLD_01",
+    "title": "Research Assistant in Single-Cell Transcriptomics",
+    "company": "Example Organization 1",
+    "location": "Vienna, Austria",
+    "description": "Requirements: B.Sc. or M.Sc. in Molecular Biology or Genetics. Hands-on experience with RNA isolation, qPCR, and library preparation for NGS. Basic R or Python skills. Fluent English.",
+    "human_label": 2,
+    "human_reason": [
+      "rna_isolation",
+      "qpcr",
+      "single_cell_genomics",
+      "degree_match"
+    ]
+  },
+  {
+    "id": "HOLD_02",
+    "title": "Bioinformatics Intern - Structural Biology & Docking",
+    "company": "Example Organization 2",
+    "location": "Basel, Switzerland",
+    "description": "Requirements: Student in Bioinformatics, Computational Biology or related. Knowledge of molecular docking (AutoDock, Vina), protein structure visualization (PyMOL, Discovery Studio), and Python.",
+    "human_label": 2,
+    "human_reason": [
+      "autodock_vina",
+      "molecular_docking",
+      "python_match"
+    ]
+  },
+  {
+    "id": "HOLD_03",
+    "title": "Laboratory Technician - Protein Expression & Western Blot",
+    "company": "Example Organization 3",
+    "location": "Berlin, Germany",
+    "description": "Requirements: Technical training (BTA/MTA) or B.Sc. in Biology. Routine Western blotting, BCA assays, SDS-PAGE, and cell counting. English required, German advantageous.",
+    "human_label": 2,
+    "human_reason": [
+      "western_blot",
+      "bca_assay",
+      "protein_extraction"
+    ]
+  },
+  {
+    "id": "HOLD_04",
+    "title": "Clinical Trials Safety Officer",
+    "company": "Example Organization 4",
+    "location": "Leverkusen, Germany",
+    "description": "Requirements: Medical Doctor (MD) or Pharm.D. degree with 5+ years of pharmacovigilance experience in EU safety reporting. Fluent German mandatory (C1).",
+    "human_label": 0,
+    "human_reason": [
+      "degree_mismatch_md_pharmd",
+      "german_c1_mandatory",
+      "pharmacovigilance_years"
+    ]
+  },
+  {
+    "id": "HOLD_05",
+    "title": "Full Stack React / Node.js Web Developer",
+    "company": "Example Organization 5",
+    "location": "Berlin, Germany",
+    "description": "Requirements: 4+ years of TypeScript, React, Next.js, and Node.js microservices. No biology background needed.",
+    "human_label": 0,
+    "human_reason": [
+      "unrelated_domain_web_dev"
+    ]
+  },
+  {
+    "id": "HOLD_06",
+    "title": "Computational Cancer Biologist - TCGA & Immune Profiling",
+    "company": "Example Organization 6",
+    "location": "Paris, France",
+    "description": "Requirements: Degree in Bioinformatics. Experience analyzing bulk and single-cell RNA-seq from public repositories (TCGA, GEO). Differential expression, survival analysis in R.",
+    "human_label": 2,
+    "human_reason": [
+      "tcga_analysis",
+      "survival_analysis",
+      "differential_expression_r"
+    ]
+  },
+  {
+    "id": "HOLD_07",
+    "title": "Research Intern - Cardiovascular Prevention",
+    "company": "Example Organization 7",
+    "location": "Munich, Germany",
+    "description": "Requirements: Background in Molecular Medicine or Biology. Immunofluorescence staining, qPCR, shRNA knockdown in cell models. English proficiency.",
+    "human_label": 2,
+    "human_reason": [
+      "direct_lmu_alignment",
+      "shrna_cxcr4",
+      "immunofluorescence"
+    ]
+  },
+  {
+    "id": "HOLD_08",
+    "title": "Lead SAP ERP Financial Consultant",
+    "company": "Example Organization 8",
+    "location": "Walldorf, Germany",
+    "description": "Requirements: 7+ years SAP S/4HANA financial accounting experience. German C2 required.",
+    "human_label": 0,
+    "human_reason": [
+      "unrelated_domain_sap_finance"
+    ]
+  },
+  {
+    "id": "HOLD_09",
+    "title": "Junior Data Scientist - Multi-Omics & Python",
+    "company": "Example Organization 9",
+    "location": "Mainz, Germany",
+    "description": "Requirements: Degree in Bioinformatics, Data Science or Computational Biology. Python, Pandas, machine learning, and biological dataset handling.",
+    "human_label": 2,
+    "human_reason": [
+      "python_data_science",
+      "bioinformatics_degree"
+    ]
+  },
+  {
+    "id": "HOLD_10",
+    "title": "Animal Facility Manager (Veterinarian)",
+    "company": "Example Organization 10",
+    "location": "Berlin, Germany",
+    "description": "Requirements: Licensed veterinarian with FELASA C certification and 5+ years of rodent breeding management.",
+    "human_label": 0,
+    "human_reason": [
+      "veterinarian_license_required",
+      "felasa_c_required"
+    ]
+  }
+]

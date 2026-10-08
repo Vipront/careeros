@@ -1,0 +1,44 @@
+[
+  {
+    "job_id": 1713,
+    "title": "Forskningsassistent i Avancerad läkemedelstillförsel",
+    "company": "Uppsala University",
+    "profile_type": "Drug Design",
+    "keyword_score": 24.0,
+    "semantic_score": 0.2641391158103943,
+    "llm_score": 52.0,
+    "final_score": 52.0,
+    "status": "low_priority",
+    "review_priority": "low",
+    "date_posted": "12 hours ago",
+    "location": "Uppsala, Uppsala County, Sweden"
+  },
+  {
+    "job_id": 1718,
+    "title": "Technicien de Laboratoire Contrôle Qualité Biologie - CDD 12 mois (F/H/D)",
+    "company": "Sandoz France",
+    "profile_type": "Wet Lab",
+    "keyword_score": 48.0,
+    "semantic_score": 0.15980079770088196,
+    "llm_score": 45.0,
+    "final_score": 45.0,
+    "status": "low_priority",
+    "review_priority": "low",
+    "date_posted": "25 minutes ago",
+    "location": "Toulouse, Occitanie, France"
+  },
+  {
+    "job_id": 1714,
+    "title": "R1 – First Stage Predoctoral Researcher (Molecular medical imaging)",
+    "company": "Vall d’Hebron Institute of Research (VHIR) - Vall d'Hebron Institut de Recerca",
+    "profile_type": "Wet Lab",
+    "keyword_score": 39.0,
+    "semantic_score": 0.4531780183315277,
+    "llm_score": 45.0,
+    "final_score": 45.0,
+    "status": "low_priority",
+    "review_priority": "low",
+    "date_posted": "15 hours ago",
+    "location": "Barcelona, Catalonia, Spain"
+  }
+]

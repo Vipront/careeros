@@ -1,0 +1,2 @@
+# Release archives must retain Unix line endings regardless of Windows autocrlf.
+*.sh text eol=lf

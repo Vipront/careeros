@@ -1,0 +1,10 @@
+[
+  {
+    "id": "work_authorization",
+    "question_patterns": [
+      "visa sponsorship"
+    ],
+    "answer": "USER_MUST_CONFIRM",
+    "notes": "Never infer work authorization."
+  }
+]

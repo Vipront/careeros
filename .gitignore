@@ -1,0 +1,48 @@
+# Secrets
+.env
+.env.*
+!.env.example
+credentials.json
+token.json
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Database runtime/backups
+data/backups/
+*.db-shm
+*.db-wal
+*.bak
+
+# Generated output/logs
+*.log
+output/
+
+# Editors/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sensitive Vault & Local Reports
+vault/
+agentshield_report.json
+deploy_summary.json
+*.lock
+.pytest_cache/
+.test_tmp/
+data/cache/
+data/runtime/
+
+# Local applicant data and runtime state
+*.db
+*.sqlite
+*.sqlite3
+.ruff_cache/
+.mypy_cache/
+.demo/

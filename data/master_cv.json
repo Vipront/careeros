@@ -1,0 +1,73 @@
+{
+  "identity": {
+    "name": "Demo Candidate",
+    "location": "Demo City",
+    "email": "demo@example.invalid",
+    "phone": ""
+  },
+  "education": [
+    {
+      "degree": "B.Sc. Molecular Biology and Genetics",
+      "institution": "Example University",
+      "dates": "2023 - 2027 (expected)",
+      "gpa": ""
+    }
+  ],
+  "research_experience": [
+    {
+      "role": "Laboratory Intern",
+      "institution": "Example Research Lab",
+      "dates": "Jul 2025 - Sep 2025",
+      "topic": "Molecular biology training",
+      "evidence": [
+        "RNA extraction",
+        "qPCR",
+        "Western blotting"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Synthetic training project",
+      "evidence": [
+        "Python data analysis",
+        "Gene-expression analysis"
+      ]
+    }
+  ],
+  "skills": {
+    "laboratory": [
+      "PCR",
+      "qPCR / Real-Time PCR",
+      "RNA extraction",
+      "Western blot",
+      "Protein extraction",
+      "BCA assay",
+      "Immunofluorescence",
+      "Cell culture",
+      "DNA extraction",
+      "Gel electrophoresis"
+    ],
+    "computational": [
+      "Python",
+      "R",
+      "Linux",
+      "bioinformatics",
+      "Gene-expression analysis",
+      "NGS",
+      "TCGA/GTEx",
+      "Differential expression",
+      "Survival analysis",
+      "Molecular docking",
+      "AutoDock Vina",
+      "SwissADME",
+      "ProTox-II",
+      "Structure-based drug design",
+      "Drug discovery",
+      "Molecular biology"
+    ],
+    "languages": [
+      "English (B2)"
+    ]
+  }
+}

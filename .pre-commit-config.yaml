@@ -1,0 +1,8 @@
+﻿# -*- coding: utf-8 -*-
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+        args: ["protect", "--staged", "-c", ".gitleaks.toml", "--verbose"]

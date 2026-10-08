@@ -1,0 +1,5 @@
+[
+  {"id":1,"title":"Molecular Biology Research Assistant","company":"Example Lab A","description":"Fictional role: PCR, qPCR and RNA extraction; entry-level research support.","profile":"Wet Lab","status":"evaluated","illustrative_score":82},
+  {"id":2,"title":"Junior Bioinformatics Analyst","company":"Example Lab B","description":"Fictional role: Python, R and gene-expression analysis; training provided.","profile":"Bioinformatics","status":"evaluated","illustrative_score":76},
+  {"id":3,"title":"Senior Drug Discovery Scientist","company":"Example Lab C","description":"Fictional role: completed PhD and five years of medicinal chemistry experience required.","profile":"Drug Design","status":"low_priority","illustrative_score":28}
+]

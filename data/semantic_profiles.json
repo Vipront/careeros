@@ -1,0 +1,11 @@
+{
+  "Wet Lab": {
+    "text": "Hands-on molecular biology and wet-lab research.\nPCR, qPCR / Real-Time PCR, DNA and RNA extraction, RNA isolation, reverse transcription,\nprotein extraction, BCA assay, Western blot, immunofluorescence, agarose gel electrophoresis,\nspectrophotometry, cell counting, culture media preparation, mitochondria isolation,\nmolecular assays, cell biology, gene expression experiments, biomedical laboratory research."
+  },
+  "Bioinformatics": {
+    "text": "Bioinformatics and computational biology research in molecular and cancer biology.\nTCGA, GTEx, NGS, next-generation sequencing, gene-expression analysis, differential expression,\nsurvival analysis, Kaplan-Meier analysis, immune infiltration, cancer genomics and transcriptomics.\nPython, R, Linux, GEPIA2, cBioPortal, Kaplan-Meier Plotter, TIMER2.0, STRING.\nCancer bioinformatics data analysis and research."
+  },
+  "Drug Design": {
+    "text": "Computational drug design, drug discovery and molecular modeling.\nStructure-based drug design, molecular docking, AutoDock Vina, AutoDock Tools,\nprotein-ligand interactions, SwissADME, ProTox-II, OpenBabel, ADME, toxicity prediction,\ncomputational chemistry, cheminformatics, protein structure analysis, ligand screening."
+  }
+}
