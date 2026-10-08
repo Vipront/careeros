@@ -578,7 +578,7 @@ elif selected_mode == "Belgelerim":
                 """
                 <div class='studio-frame'>
                     <div class='section-headline'>YENİ BELGE YÜKLE</div>
-                    <div style='font-size:0.72rem; color:var(--text-muted); margin-bottom:10px;'>Desteklenen: PDF, PNG, JPG (Maks. 200MB)</div>
+                    <div style='font-size:0.72rem; color:var(--text-muted); margin-bottom:10px;'>Desteklenen: PDF, PNG, JPG (Maks. 20 MiB)</div>
                 </div>
                 """
             ),
