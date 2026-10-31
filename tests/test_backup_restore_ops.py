@@ -15,78 +15,51 @@ from src.ops import rollback
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize("source,expected", [
-    ("https://example.invalid", "https://example.invalid"),
-    ("http://example.invalid:8080", "http://example.invalid:8080"),
-    ("libsql://example.invalid", "libsql://example.invalid"),
+def test_backup_reads_large_table_in_linear_work():
+    from scripts.backup_database import _collect_backup
+    con = sqlite3.connect(':memory:')
+    con.execute('CREATE TABLE jobs(id INTEGER PRIMARY KEY, title TEXT)')
+    expected = [(i, str(i)) for i in range(-5, 4995)]
+    con.executemany('INSERT INTO jobs VALUES (?,?)', expected)
+    steps = 0
+
+    def progress():
+        nonlocal steps
+        steps += 100
+        return 0
+
+    con.set_progress_handler(progress, 100)
+    try:
+        payload = _collect_backup(con)
+        assert payload['tables'][0]['rows'] == [list(row) for row in expected]
+        assert steps < 100_000, f'Backup repeatedly scanned old rows: {steps} VM steps'
+    finally:
+        con.close()
+
+
+@pytest.mark.parametrize('schema', [
+    'CREATE TABLE jobs(id TEXT PRIMARY KEY, title TEXT) WITHOUT ROWID',
+    'CREATE TABLE jobs(rowid INTEGER, _rowid_ INTEGER, oid INTEGER, title TEXT)',
 ])
-def test_backup_uses_transaction_capable_transport(tmp_path, monkeypatch, source, expected):
-    from src import db
-    monkeypatch.setattr(db, "TURSO_URL", source)
-    monkeypatch.setattr(db, "TURSO_TOKEN", "test-token")
-    monkeypatch.setattr("scripts.backup_database._HttpSnapshotConnection", lambda url, token: (url, token))
-    assert _open_connection(tmp_path) == (expected, "test-token")
+def test_backup_preserves_tables_without_accessible_rowid(schema):
+    from scripts.backup_database import _collect_backup
+    con = sqlite3.connect(':memory:')
+    con.execute(schema)
+    count = len(con.execute('SELECT * FROM jobs').description)
+    rows = [tuple(str(i) for _ in range(count)) for i in range(105)]
+    con.executemany('INSERT INTO jobs VALUES (' + ','.join('?' for _ in range(count)) + ')', rows)
+    try:
+        payload = _collect_backup(con)
+        assert len(payload['tables'][0]['rows']) == 105
+        assert set(map(tuple, payload['tables'][0]['rows'])) == set(con.execute('SELECT * FROM jobs'))
+    finally:
+        con.close()
 
 
-def test_http_snapshot_keeps_baton_and_decodes_values(monkeypatch):
-    from scripts.backup_database import _HttpSnapshotConnection
-
-    calls = []
-
-    class Session:
-        headers = {}
-
-        def post(self, url, **kwargs):
-            calls.append((url, kwargs))
-            number = len(calls)
-
-            class Response:
-                status_code = 200
-
-                def json(self):
-                    return {"baton": f"snapshot-{number}", "results": [{"type": "ok", "response": {
-                        "result": {"cols": [{"name": "id"}, {"name": "text"}], "rows": [] if number == 1 else [
-                            [{"type": "integer", "value": "12"}, {"type": "text", "value": "value"}]
-                        ]}
-                    }}]}
-
-            return Response()
-
-        def close(self):
-            pass
-
-    monkeypatch.setattr("scripts.backup_database.requests.Session", Session)
-    con = _HttpSnapshotConnection("https://example.invalid", "test-token")
-    assert con.execute("SELECT id,text FROM jobs LIMIT 100 OFFSET ?", (100,)).fetchall() == [[12, "value"]]
-    con.close()
-    assert calls[0][1]["json"]["baton"] is None
-    assert calls[1][1]["json"]["baton"] == "snapshot-1"
-    assert calls[2][1]["json"]["baton"] == "snapshot-2"
-    assert calls[2][1]["json"]["requests"] == [{"type": "close"}]
-    assert all(call[1]["allow_redirects"] is False for call in calls)
 
 
-def test_http_snapshot_refuses_lost_transaction(monkeypatch):
-    from scripts.backup_database import _HttpSnapshotConnection
 
-    class Session:
-        headers = {}
 
-        def post(self, *_args, **_kwargs):
-            class Response:
-                status_code = 200
-
-                def json(self):
-                    return {"baton": None, "results": [{"type": "ok"}]}
-
-            return Response()
-
-        def close(self):
-            pass
-
-    monkeypatch.setattr("scripts.backup_database.requests.Session", Session)
-    with pytest.raises(RuntimeError, match="expired"):
-        _HttpSnapshotConnection("https://example.invalid", "test-token")
 
 
 @pytest.fixture
@@ -148,52 +121,6 @@ def test_logical_backup_is_private_atomic_and_does_not_overwrite(workspace_tmp):
     assert list(destination.parent.glob(".backup-*")) == []
 
 
-def test_remote_logical_backup_reads_through_one_transaction(workspace_tmp):
-    class Result:
-        def __init__(self, columns, rows):
-            self.columns, self.rows = columns, rows
-
-    class Transaction:
-        def __init__(self):
-            self.rolled_back = False
-            self.closed = False
-
-        def execute(self, sql, _parameters):
-            if "FROM sqlite_master WHERE type='table'" in sql:
-                return Result(["name", "sql"], [
-                    ("jobs", "CREATE TABLE jobs(id INTEGER PRIMARY KEY, title TEXT)"),
-                    ("events", "CREATE TABLE events(id INTEGER PRIMARY KEY)"),
-                    ("applications", "CREATE TABLE applications(id INTEGER PRIMARY KEY)"),
-                ])
-            if sql.startswith('SELECT * FROM "jobs"'):
-                return Result(["id", "title"], [(1, "remote")])
-            if "sqlite_master WHERE type='index'" in sql:
-                return Result(["sql"], [])
-            if "FROM sqlite_sequence" in sql:
-                return Result(["name", "seq"], [])
-            return Result(["id"], [])
-
-        def rollback(self):
-            self.rolled_back = True
-
-        def close(self):
-            self.closed = True
-
-    transaction = Transaction()
-
-    class Client:
-        def transaction(self):
-            return transaction
-
-    class RemoteConnection:
-        client = Client()
-
-    destination = workspace_tmp / "app" / "data" / "backups" / "remote.json"
-    counts = create_backup(workspace_tmp / "app", destination, RemoteConnection())
-    assert counts["jobs"] == 1
-    assert transaction.rolled_back and transaction.closed
-    tables = json.loads(destination.read_text(encoding="utf-8"))["tables"]
-    assert next(table for table in tables if table["name"] == "jobs")["rows"] == [[1, "remote"]]
 
 
 def test_restore_requires_offline_ack_and_validates_json_before_touching_db(workspace_tmp):

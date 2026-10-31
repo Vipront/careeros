@@ -39,7 +39,7 @@ def is_authorized_user(user_id, chat_id=None):
 def get_db():
     from src.db import get_connection
     con = get_connection()
-    # con.row_factory is not strictly needed as TursoCursor rows support dict-like access
+    # Selected columns are mapped explicitly below.
     return con
 
 def get_pending_review_jobs(limit=50):

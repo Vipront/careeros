@@ -64,14 +64,6 @@ class TestDashboardOverview(unittest.TestCase):
 
         self.assertEqual(ready["id"].tolist(), [7, 4])
 
-    def test_provider_label_reports_selected_backend_without_credentials(self):
-        with patch.dict("os.environ", {"TURSO_DB_URL": "libsql://example", "TURSO_AUTH_TOKEN": "secret"}), \
-             patch.object(db, "TURSO_URL", None), patch.object(db, "TURSO_TOKEN", None):
-            self.assertEqual(db.get_connection_provider(), "Turso")
-
-        with patch.dict("os.environ", {"TURSO_DB_URL": "", "TURSO_AUTH_TOKEN": ""}), \
-             patch.object(db, "TURSO_URL", None), patch.object(db, "TURSO_TOKEN", None):
-            self.assertEqual(db.get_connection_provider(), "SQLite")
 
 
     def test_metrics_respect_is_ready_recommendation_filtering(self):

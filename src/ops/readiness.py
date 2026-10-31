@@ -1,7 +1,6 @@
 """Read-only deployment readiness: imports, database schema and profile availability."""
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -16,13 +15,9 @@ def check_readiness(root: Path | None = None) -> dict:
         import src.ingestion.manual_ingestion  # noqa: F401
         import src.ops.liveness  # noqa: F401
 
-        if root is None and db.get_connection_provider() == "Turso":
-            con = db.TursoConnection(os.getenv("TURSO_DB_URL") or db.TURSO_URL,
-                                     os.getenv("TURSO_AUTH_TOKEN") or db.TURSO_TOKEN)
-        else:
-            import sqlite3
-            path = (target / "data" / "jobs.db").resolve()
-            con = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)
+        import sqlite3
+        path = (target / "data" / "jobs.db").resolve()
+        con = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)
         # Read schema directly: db.get_connection intentionally performs migrations.
         con.execute("SELECT id,status,llm_judge_status,pipeline_status FROM jobs LIMIT 0")
         con.execute("SELECT job_id,event_type,event_time,note FROM events LIMIT 0")

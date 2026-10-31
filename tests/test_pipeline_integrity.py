@@ -23,17 +23,7 @@ class TestPipelineIntegrity(unittest.TestCase):
     def test_verify_setup(self):
         from src.verify_setup import run
         with isolated_database() as db_path:
-            # Explicit paths are a local test override even if production Turso
-            # credentials are present. A client construction here would be a bug.
-            fake_client = SimpleNamespace(
-                create_client_sync=lambda *_args, **_kwargs: self.fail("verify_setup attempted Turso access")
-            )
-            with (
-                patch.object(db, "TURSO_URL", "libsql://must-not-be-used.invalid"),
-                patch.object(db, "TURSO_TOKEN", "test-token"),
-                patch.object(db, "libsql_client", fake_client),
-            ):
-                self.assertEqual(run(db_path=db_path), 0)
+            self.assertEqual(run(db_path=db_path), 0)
 
     def test_regression_fixture_cases(self):
         data = json.loads((ROOT / "data" / "regression_fixture_v1.json").read_text(encoding="utf-8"))

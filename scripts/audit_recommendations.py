@@ -27,9 +27,9 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--provider",
-        choices=["auto", "sqlite", "turso"],
+        choices=["auto", "sqlite"],
         default="auto",
-        help="Database provider (default: auto; uses Turso if credentials exist, otherwise local SQLite).",
+        help="Database provider (default: auto; local SQLite only).",
     )
     parser.add_argument(
         "--sample",

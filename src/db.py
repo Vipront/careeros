@@ -1,4 +1,4 @@
-import os
+import sqlite3
 from typing import Any
 from datetime import datetime, timezone
 from pathlib import Path
@@ -12,23 +12,12 @@ try:
 except ImportError:
     pass
 
-try:
-    import libsql_client
-except ImportError:
-    libsql_client = None
-
 DB_PATH = ROOT / "data" / "jobs.db"
-
-# Turso DB Configuration
-TURSO_URL = os.getenv("TURSO_DB_URL")
-TURSO_TOKEN = os.getenv("TURSO_AUTH_TOKEN")
 
 
 def get_connection_provider() -> str:
-    """Return the configured database provider without exposing credentials."""
-    url = os.getenv("TURSO_DB_URL") or TURSO_URL
-    token = os.getenv("TURSO_AUTH_TOKEN") or TURSO_TOKEN
-    return "Turso" if url and token else "SQLite"
+    return "SQLite"
+
 
 ALLOWED = {
     "new": {"evaluated", "rejected"},
@@ -67,87 +56,8 @@ def utc_now():
 def now():
     return utc_now()
 
-class TursoCursor:
-    """Wrapper to mimic sqlite3 Cursor behavior."""
-    def __init__(self, result_set):
-        self._res = result_set
-        self.description = [(col, None, None, None, None, None, None) for col in result_set.columns] if result_set else []
-
-    def __iter__(self):
-        if not self._res or not self._res.rows:
-            return iter(())
-        return iter(self._res.rows)
-
-    def fetchall(self):
-        if not self._res:
-            return []
-        return self._res.rows
-
-    def fetchone(self):
-        if not self._res or not self._res.rows:
-            return None
-        return self._res.rows[0]
-
-    @property
-    def rowcount(self):
-        return self._res.rows_affected if self._res else 0
-
-    @property
-    def lastrowid(self):
-        return getattr(self._res, "last_insert_rowid", None)
-
-class TursoConnection:
-    """Wrapper to mimic sqlite3 Connection behavior using libsql-client sync API."""
-    def __init__(self, url, token):
-        self.client = libsql_client.create_client_sync(url, auth_token=token)
-        self.row_factory = None
-
-    def cursor(self):
-        return self
-
-    def execute(self, sql, parameters=()):
-        if isinstance(parameters, (tuple, list)):
-            args: Any = list(parameters)
-        elif isinstance(parameters, dict):
-            args = parameters
-        else:
-            args = parameters
-
-        try:
-            rs = self.client.execute(sql, args)
-            return TursoCursor(rs)
-        except Exception as e:
-            raise e
-
-    def executemany(self, sql, seq_of_parameters):
-        stmts = [libsql_client.Statement(sql, list(p)) for p in seq_of_parameters]
-        if stmts:
-            self.client.batch(stmts)
-
-    def executescript(self, sql_script):
-        stmts = [s.strip() for s in sql_script.split(";") if s.strip()]
-        if stmts:
-            self.client.batch([libsql_client.Statement(s, []) for s in stmts])
-
-    def commit(self):
-        pass
-
-    def close(self):
-        if hasattr(self.client, "close"):
-            self.client.close()
-
-
-_SQLITE_SCHEMA_CHECKED = False
-_TURSO_SCHEMA_CHECKED = False
-
-
 def ensure_v2_schema(con: Any) -> bool:
     """Ensure v2 columns exist and report whether the jobs schema was validated."""
-    global _SQLITE_SCHEMA_CHECKED, _TURSO_SCHEMA_CHECKED
-    if isinstance(con, TursoConnection):
-        if _TURSO_SCHEMA_CHECKED:
-            return True
-
     try:
         rows = con.execute("PRAGMA table_info(jobs)").fetchall()
     except Exception as exc:
@@ -219,40 +129,27 @@ def ensure_v2_schema(con: Any) -> bool:
     except Exception:  # noqa: S110
         pass
 
-    if isinstance(con, TursoConnection):
-        _TURSO_SCHEMA_CHECKED = True
     return True
 
 
-def get_connection(path=None) -> Any:
+_SQLITE_SCHEMA_CHECKED = False
+
+
+def get_connection(path=None) -> sqlite3.Connection:
     global _SQLITE_SCHEMA_CHECKED
-    # Always reload in case .env was populated recently
-    url = os.getenv("TURSO_DB_URL") or TURSO_URL
-    token = os.getenv("TURSO_AUTH_TOKEN") or TURSO_TOKEN
-
-    if path is None and get_connection_provider() == "Turso":
-        turso_con = TursoConnection(url, token)
-        try:
-            ensure_v2_schema(turso_con)
-            return turso_con
-        except Exception:
-            turso_con.close()
-            raise
-    else:
-        import sqlite3
-
-        sqlite_con = sqlite3.connect(path or DB_PATH, timeout=30.0)
-        sqlite_con.execute("PRAGMA foreign_keys=ON")
-        sqlite_con.execute("PRAGMA journal_mode=WAL")
+    con = sqlite3.connect(path or DB_PATH, timeout=30.0)
+    try:
+        con.execute("PRAGMA foreign_keys=ON")
+        con.execute("PRAGMA journal_mode=WAL")
         if path is not None or not _SQLITE_SCHEMA_CHECKED:
-            try:
-                schema_validated = ensure_v2_schema(sqlite_con)
-                if path is None and schema_validated:
-                    _SQLITE_SCHEMA_CHECKED = True
-            except Exception:
-                sqlite_con.close()
-                raise
-        return sqlite_con
+            validated = ensure_v2_schema(con)
+            if path is None and validated:
+                _SQLITE_SCHEMA_CHECKED = True
+        return con
+    except Exception:
+        con.close()
+        raise
+
 
 def transition(job_id, new_status, note=None, allow_unarchive=False, *, connection=None, system=False):
     """Apply a validated status change and its audit event on the same connection.
@@ -285,26 +182,13 @@ def transition(job_id, new_status, note=None, allow_unarchive=False, *, connecti
         sql_event = "INSERT INTO events(job_id,event_type,event_time,note) VALUES(?,?,?,?)"
         params_event = [job_id, "status_change", stamp, note_text]
 
-        if isinstance(con, TursoConnection):
-            stmt1 = libsql_client.Statement(sql_update, params_update)
-            conditional_event = sql_event.replace(
-                "VALUES(?,?,?,?)",
-                "SELECT ?,?,?,? WHERE changes() = 1 AND EXISTS "
-                "(SELECT 1 FROM jobs WHERE id=? AND status=?)",
-            )
-            stmt2 = libsql_client.Statement(conditional_event, params_event + [job_id, new_status])
-            batch_results = con.client.batch([stmt1, stmt2])
-            if isinstance(batch_results, list) and batch_results and batch_results[0].rows_affected != 1:
-                raise ValueError(f"Job {job_id} changed status concurrently; reload before retrying")
-        else:
-            result = con.execute(sql_update, params_update)
-            if result.rowcount != 1:
-                raise ValueError(f"Job {job_id} changed status concurrently; reload before retrying")
-            con.execute(sql_event, params_event)
-            con.commit()
+        result = con.execute(sql_update, params_update)
+        if result.rowcount != 1:
+            raise ValueError(f"Job {job_id} changed status concurrently; reload before retrying")
+        con.execute(sql_event, params_event)
+        con.commit()
     except Exception:
-        if not isinstance(con, TursoConnection):
-            con.rollback()
+        con.rollback()
         raise
     finally:
         if owns_connection:
@@ -360,8 +244,7 @@ def reconcile_application_paths(output_root, connection=None):
         con.commit()
         return changed
     except Exception:
-        if not isinstance(con, TursoConnection):
-            con.rollback()
+        con.rollback()
         raise
     finally:
         if owns_connection:

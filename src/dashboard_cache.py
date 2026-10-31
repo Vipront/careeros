@@ -1,4 +1,4 @@
-"""Server-private dashboard snapshots; refresh remote data off the UI thread."""
+"""Server-private dashboard snapshots; optional snapshots off the UI thread."""
 from __future__ import annotations
 
 import hashlib
@@ -25,7 +25,7 @@ def snapshot_signature():
     from src.eligibility.language import LANGUAGE_RULE_VERSION
     from src.ops.liveness import CACHE_DURATION_HOURS, LIVENESS_CLASSIFIER_VERSION
 
-    values = [1, os.getenv("TURSO_DB_URL") or db.TURSO_URL,
+    values = [1, str(db.DB_PATH.resolve()),
               compute_profile_version(get_candidate_profile_facts()), GATE_RULE_VERSION,
               EXPERIENCE_RULE_VERSION, LANGUAGE_RULE_VERSION, CACHE_DURATION_HOURS,
               LIVENESS_CLASSIFIER_VERSION]
@@ -139,17 +139,7 @@ def get_store(include_rejected=False, *, start=True):
 
 
 def get_dashboard_jobs(include_rejected=False):
-    if db.get_connection_provider() != "Turso":
-        return dashboard_data.fetch_jobs(include_rejected)
-    frame = get_store(include_rejected).read()
-    if not include_rejected and not frame.empty:
-        frame = frame[frame["status"].isin(["evaluated", "ready_for_review", "low_priority", "applied", "interview", "offer"])]
-    return frame
-
-
-def start_dashboard_refresh():
-    if db.get_connection_provider() == "Turso":
-        get_store()
+    return dashboard_data.fetch_jobs(include_rejected)
 
 
 def patch_cached_status(job_id, status):

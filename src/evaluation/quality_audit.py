@@ -1,7 +1,7 @@
 """Read-only automated quality audit for CareerOS recommendations.
 
 Audits saved recommendations against the shared recommendation quality gate
-using current runtime profile facts. Supports Turso and read-only SQLite.
+using current runtime profile facts. Uses read-only SQLite.
 Never mutates the database.
 """
 
@@ -10,7 +10,6 @@ from __future__ import annotations
 import csv
 import json
 import math
-import os
 import re
 import sqlite3
 from datetime import datetime, timezone
@@ -90,19 +89,7 @@ def get_connection_for_audit(
         uri = f"{Path(db_path).resolve().as_uri()}?mode=ro"
         return sqlite3.connect(uri, uri=True), "SQLite"
 
-    if provider == "sqlite":
-        uri = f"{(ROOT / 'data' / 'jobs.db').resolve().as_uri()}?mode=ro"
-        return sqlite3.connect(uri, uri=True), "SQLite"
-
-    if provider in ("auto", "turso"):
-        import src.db as db_mod
-
-        turso_url = os.getenv("TURSO_DB_URL") or getattr(db_mod, "TURSO_URL", None)
-        turso_token = os.getenv("TURSO_AUTH_TOKEN") or getattr(db_mod, "TURSO_TOKEN", None)
-        if turso_url and turso_token:
-            return db_mod.TursoConnection(turso_url, turso_token), "Turso"
-        if provider == "turso":
-            raise QualityAuditDatabaseError("Turso provider requested but TURSO_DB_URL or TURSO_AUTH_TOKEN not set")
+    if provider in ("auto", "sqlite"):
         uri = f"{(ROOT / 'data' / 'jobs.db').resolve().as_uri()}?mode=ro"
         return sqlite3.connect(uri, uri=True), "SQLite"
 

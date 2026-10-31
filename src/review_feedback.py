@@ -22,8 +22,7 @@ def record_feedback(job_id: int, is_match: bool, reason: str) -> None:
                     (job_id, "review_feedback", now(), json.dumps(payload, ensure_ascii=False)))
         con.commit()
     except Exception:
-        if not isinstance(con, db.TursoConnection):
-            con.rollback()
+        con.rollback()
         raise
     finally:
         con.close()
@@ -70,28 +69,13 @@ def request_retry(job_id: int) -> None:
         event_sql = "INSERT INTO events(job_id,event_type,event_time,note) VALUES(?,?,?,?)"
         event_params = [job_id, "retry_requested", stamp, event_note]
 
-        if isinstance(con, db.TursoConnection):
-            guarded_event_sql = "INSERT INTO events(job_id,event_type,event_time,note) SELECT ?,?,?,? WHERE changes()=1"
-            statements = [
-                db.libsql_client.Statement(update_sql, update_params),
-                db.libsql_client.Statement(guarded_event_sql, event_params),
-            ]
-            results = con.client.batch(statements)
-            if not isinstance(results, (list, tuple)) or len(results) < 2:
-                raise RuntimeError("Retry transaction did not return both statement results.")
-            if getattr(results[0], "rows_affected", None) != 1:
-                raise ValueError("İlan değişti; yeniden denemeden önce sayfayı yenile.")
-            if getattr(results[1], "rows_affected", None) != 1:
-                raise RuntimeError("Retry audit event was not confirmed by the transaction.")
-        else:
-            result = con.execute(update_sql, update_params)
-            if result.rowcount != 1:
-                raise ValueError("İlan değişti; yeniden denemeden önce sayfayı yenile.")
-            con.execute(event_sql, event_params)
-            con.commit()
+        result = con.execute(update_sql, update_params)
+        if result.rowcount != 1:
+            raise ValueError("İlan değişti; yeniden denemeden önce sayfayı yenile.")
+        con.execute(event_sql, event_params)
+        con.commit()
     except Exception:
-        if not isinstance(con, db.TursoConnection):
-            con.rollback()
+        con.rollback()
         raise
     finally:
         con.close()

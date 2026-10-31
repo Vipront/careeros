@@ -30,8 +30,7 @@ def test_dashboard_rejects_missing_and_wrong_password(monkeypatch):
     from streamlit.testing.v1 import AppTest
 
     monkeypatch.setenv("DASHBOARD_PASSWORD", "fictional-strong-test-password")
-    with patch("src.dashboard_cache.start_dashboard_refresh"), \
-            patch("src.dashboard_theme.inject_theme"):
+    with patch("src.dashboard_theme.inject_theme"):
         app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "src/dashboard.py"))
         app.run(timeout=20)
         assert not app.exception

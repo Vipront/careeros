@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Keep seven successful automatic snapshots; preserve all manual backups.
+# Keep only the latest successful automatic snapshot; preserve manual backups.
 set -euo pipefail
 root="$(readlink -f "${1:?application root required}")"
 cd "$root"
@@ -16,7 +16,7 @@ directory = (Path(sys.argv[1]) / 'data/backups').resolve()
 files = sorted(p for p in directory.iterdir()
                if re.fullmatch(r'daily-auto-\d{8}T\d{6}Z\.json', p.name)
                and not p.is_symlink() and p.is_file() and p.stat().st_size > 0)
-for path in files[:-7]:
+for path in files[:-1]:
     if path.resolve().parent != directory:
         raise RuntimeError('Backup path escaped directory')
     path.unlink()

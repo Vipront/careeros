@@ -6,13 +6,10 @@ import json
 import os
 import re
 import sqlite3
-import sys
 import tempfile
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
 
-import requests
 
 
 def _collect_backup(con: Any) -> dict[str, Any]:
@@ -28,11 +25,27 @@ def _collect_backup(con: Any) -> dict[str, Any]:
         for name, schema in schemas:
             if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name):
                 raise ValueError("Unsupported table identifier")
-            values, offset, columns = [], 0, []
+            columns = [column[0] for column in con.execute(f'SELECT * FROM "{name}" LIMIT 0').description]
+            rowid = next((key for key in ("rowid", "_rowid_", "oid")
+                          if key not in {col.lower() for col in columns}), None)
+            if re.search(r"\bWITHOUT\s+ROWID\b", schema, re.I):
+                rowid = None
+            values, offset, last_rowid = [], 0, None
             while True:
-                cursor = con.execute(f'SELECT * FROM "{name}" LIMIT 100 OFFSET ?', (offset,))
-                columns = [column[0] for column in cursor.description]
-                page = cursor.fetchall()
+                if rowid:
+                    # Seek past the previous page instead of scanning it again for OFFSET.
+                    condition = "" if last_rowid is None else f"WHERE {rowid} > ?"
+                    args = () if last_rowid is None else (last_rowid,)
+                    cursor = con.execute(
+                        f'SELECT {rowid}, * FROM "{name}" {condition} ORDER BY {rowid} LIMIT 100', args)
+                    raw_page = cursor.fetchall()
+                    if raw_page:
+                        last_rowid = raw_page[-1][0]
+                    page = [row[1:] for row in raw_page]
+                else:
+                    # Unusual WITHOUT ROWID or fully shadowed tables retain the compatible path.
+                    cursor = con.execute(f'SELECT * FROM "{name}" LIMIT 100 OFFSET ?', (offset,))
+                    page = cursor.fetchall()
                 values.extend([list(row) for row in page])
                 if len(page) < 100:
                     break
@@ -55,39 +68,6 @@ def _collect_backup(con: Any) -> dict[str, Any]:
     finally:
         if owns_snapshot:
             con.rollback()
-
-
-class _TransactionCursor:
-    def __init__(self, result: Any):
-        self.description = [(name, None, None, None, None, None, None) for name in result.columns]
-        self._rows = result.rows
-
-    def fetchall(self):
-        return self._rows
-
-
-class _TransactionReader:
-    def __init__(self, transaction: Any):
-        self.transaction = transaction
-
-    def execute(self, sql: str, parameters: tuple[Any, ...] = ()):
-        return _TransactionCursor(self.transaction.execute(sql, list(parameters)))
-
-
-def _collect_consistent_backup(con: Any) -> dict[str, Any]:
-    """Use a driver transaction for remote LibSQL snapshots when available."""
-    client = getattr(con, "client", None)
-    transaction_factory = getattr(client, "transaction", None)
-    if not callable(transaction_factory):
-        return _collect_backup(con)
-    transaction = transaction_factory()
-    try:
-        return _collect_backup(_TransactionReader(transaction))
-    finally:
-        try:
-            transaction.rollback()
-        finally:
-            transaction.close()
 
 
 def _publish_exclusive(destination: Path, payload: dict[str, Any]) -> None:
@@ -129,88 +109,12 @@ def create_backup(root: Path, destination: Path, con: Any) -> dict[str, int]:
     backup_dir = (root / "data" / "backups").resolve()
     if not destination.is_relative_to(backup_dir) or destination == backup_dir:
         raise ValueError("Backup must remain under the application's data/backups directory")
-    payload = _collect_consistent_backup(con)
+    payload = _collect_backup(con)
     _publish_exclusive(destination, payload)
     return {table["name"]: len(table["rows"]) for table in payload["tables"]}
 
 
-class _HttpSnapshotConnection:
-    """Read one consistent snapshot through Turso's HTTP transaction baton."""
-
-    def __init__(self, url: str, token: str):
-        parsed = urlsplit(url)
-        scheme = {"libsql": "https", "wss": "https", "ws": "http"}.get(parsed.scheme, parsed.scheme)
-        self.url = urlunsplit(parsed._replace(scheme=scheme, path="/v2/pipeline", query="", fragment=""))
-        self.baton = None
-        self.session = requests.Session()
-        self.session.trust_env = False
-        self.session.headers["Authorization"] = f"Bearer {token}"
-        try:
-            self.execute("BEGIN DEFERRED")
-        except Exception:
-            self.session.close()
-            raise
-
-    def execute(self, sql: str, parameters: tuple[Any, ...] = ()):
-        arguments = [{"type": "integer", "value": str(value)} for value in parameters]
-        response = self.session.post(self.url, json={
-            "baton": self.baton,
-            "requests": [{"type": "execute", "stmt": {"sql": sql, "args": arguments, "want_rows": True}}],
-        }, timeout=60, allow_redirects=False)
-        if response.status_code != 200:
-            raise RuntimeError("Snapshot HTTP request failed")
-        body = response.json()
-        self.baton = body.get("baton")
-        result = body["results"][0]
-        if result.get("type") != "ok" or not self.baton:
-            if "no such table: sqlite_sequence" in result.get("error", {}).get("message", ""):
-                raise sqlite3.OperationalError("no such table: sqlite_sequence")
-            raise RuntimeError("Snapshot transaction failed or expired")
-        base_url = body.get("base_url")
-        if base_url:
-            original, target = urlsplit(self.url), urlsplit(base_url)
-            if (original.scheme, original.netloc) != (target.scheme, target.netloc):
-                raise RuntimeError("Snapshot endpoint changed origin")
-            self.url = base_url.rstrip("/") + "/v2/pipeline"
-        raw = result["response"]["result"]
-
-        def decode(cell):
-            kind = cell["type"]
-            if kind == "null":
-                return None
-            if kind == "integer":
-                return int(cell["value"])
-            if kind == "float":
-                return float(cell["value"])
-            if kind == "text":
-                return cell["value"]
-            raise ValueError("Unsupported snapshot value type")
-
-        class Cursor:
-            description = [(column["name"],) for column in raw["cols"]]
-
-            def fetchall(self):
-                return [[decode(cell) for cell in row] for row in raw["rows"]]
-
-        return Cursor()
-
-    def close(self):
-        try:
-            if self.baton:
-                self.session.post(self.url, json={"baton": self.baton, "requests": [{"type": "close"}]},
-                                  timeout=15, allow_redirects=False)
-        finally:
-            self.session.close()
-
-
 def _open_connection(root: Path):
-    sys.path.insert(0, str(root))
-    from src import db  # noqa: PLC0415
-
-    if db.TURSO_URL and db.TURSO_TOKEN:
-        # The pinned client's HTTP transport has no interactive transactions;
-        # current Turso endpoints may also reject its legacy WebSocket protocol.
-        return _HttpSnapshotConnection(db.TURSO_URL, db.TURSO_TOKEN)
     return sqlite3.connect((root / "data" / "jobs.db").as_uri() + "?mode=ro", uri=True)
 
 

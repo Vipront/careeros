@@ -27,11 +27,8 @@ def isolated_database():
                 "TURSO_DB_URL": "",
                 "TURSO_AUTH_TOKEN": "",
             }))
-            stack.enter_context(patch.object(db, "TURSO_URL", None))
-            stack.enter_context(patch.object(db, "TURSO_TOKEN", None))
             stack.enter_context(patch.object(db, "DB_PATH", db_path))
             stack.enter_context(patch.object(db, "_SQLITE_SCHEMA_CHECKED", False))
-            stack.enter_context(patch.object(db, "_TURSO_SCHEMA_CHECKED", False))
             yield db_path
 
 

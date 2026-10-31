@@ -16,7 +16,7 @@ Ekran görüntüsünde yalnız kurgu veriler bulunur. Gösterilen puanlar temsil
 
 - Anahtar kelime eşleştirmesini, cümle gömmelerini ve yapılandırılmış LLM değerlendirmesini birleştirir.
 - Deneyim, eğitim ve dil koşullarını kontrol eder; belirsiz kanıtları izler.
-- Yerelde SQLite, isteğe bağlı olarak Turso/LibSQL kullanır.
+- Verileri yerel SQLite veritabanında tutar; ayrı bir veritabanı hesabı gerektirmez.
 - İnceleme ve başvuru durumlarını olay kaydıyla takip eder.
 - Streamlit paneli ve isteğe bağlı Telegram bildirimleri sunar.
 - CV ve ön yazı taslaklarını incelemeye sunmadan önce doğrulama kontrollerinden geçirir.
@@ -57,7 +57,7 @@ export DASHBOARD_PASSWORD='choose-your-local-password'
 python -m streamlit run src/dashboard.py --server.address 127.0.0.1
 ```
 
-`http://localhost:8501` adresini aç. Demo için Turso erişim bilgisi tanımlama. Veri ekleme komutu mevcut veritabanının üzerine yazmaz. Çevrimdışı örnek ve yerel panel, canlı ilan toplama akışını çalıştırmaz.
+`http://localhost:8501` adresini aç. Veri ekleme komutu mevcut veritabanının üzerine yazmaz. Çevrimdışı örnek ve yerel panel, canlı ilan toplama akışını çalıştırmaz.
 
 ## Tam akışın kurulumu
 

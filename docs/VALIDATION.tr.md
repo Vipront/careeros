@@ -2,6 +2,19 @@
 
 [English](VALIDATION.md) | [Türkçe](VALIDATION.tr.md)
 
+## SQLite güncellemesi — 1 Kasım 2026
+
+Veritabanı artık yalnızca SQLite kullanıyor. Uzak istemci kodu, ayarları ve paket
+bağımlılığı kaldırıldı. Otomatik yedeklerde yalnızca son başarılı kopya tutuluyor;
+yeni yedek alınamazsa önceki korunuyor. Manuel yedekler saklanıyor.
+
+Bu temiz yayın kopyasında veritabanı, yedekleme ve geri yükleme, işlem bütünlüğü,
+inceleme, denetim, akış ve önbellekle ilgili 41 test geçti. Ruff `src`, `scripts`
+ve `tests` için geçti; çevrimdışı JSON demosu çalıştı; Gitleaks bulgu bildirmedi.
+Bu güncellemede tam regresyon paketi yeniden çalıştırılmadı.
+
+## Önceki doğrulama
+
 Temiz kopya 9 Ekim 2026'da (Europe/Istanbul) doğrulandı:
 
 - Çevrimdışı regresyon paketi: 411 test geçti, 7 test atlandı, 7 alt test geçti. Altı uyarı Pydantic'in kullanımdan kaldırılan `.dict()` API'siyle ilgili.

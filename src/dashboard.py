@@ -12,7 +12,7 @@ from src.ops.login_security import LOGIN_ATTEMPTS
 from src.observability.telemetry import safe_log, sanitize_text
 from src.db import transition, get_connection, get_connection_provider
 from src.dashboard_data import JOB_COLUMNS, fetch_description
-from src.dashboard_cache import get_dashboard_jobs, patch_cached_status, refresh_dashboard_cache, start_dashboard_refresh, SnapshotUnavailable
+from src.dashboard_cache import get_dashboard_jobs, patch_cached_status, refresh_dashboard_cache, SnapshotUnavailable
 from src.dashboard_theme import inject_theme, render_login_header, render_brand_header, render_desk_heading, render_svg_icon
 from src.dashboard_workspace import render_workspace, render_today, render_applications
 
@@ -33,7 +33,7 @@ st.set_page_config(
 ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / ".env"
 load_dotenv(ENV_FILE)
-start_dashboard_refresh()
+
 
 # ==============================================================================
 # 2. SAGE THEME STYLESHEET INJECTION

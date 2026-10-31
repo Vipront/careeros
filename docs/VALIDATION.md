@@ -2,6 +2,20 @@
 
 [English](VALIDATION.md) | [Türkçe](VALIDATION.tr.md)
 
+## SQLite-only update — 1 November 2026
+
+The database backend now uses SQLite only. Remote client code, configuration and
+the client dependency were removed. Automatic backups keep the latest successful
+snapshot; if a new backup fails, the previous one remains. Manual snapshots are
+preserved.
+
+For this sanitized publication update, 41 focused database, backup/restore,
+transaction, review, audit, pipeline and cache tests passed. Ruff passed for
+`src`, `scripts` and `tests`; the offline JSON demo passed; Gitleaks reported no
+findings. The complete regression suite was not rerun for this update.
+
+## Earlier validation
+
 Validated on 9 October 2026 (Europe/Istanbul), using the sanitized snapshot:
 
 - Offline regression suite: 411 passed, 7 skipped, 7 subtests passed. Six warnings concern Pydantic's deprecated `.dict()` API.

@@ -32,10 +32,7 @@ def isolate_runtime(tmp_path, monkeypatch):
     con.executescript((Path(__file__).resolve().parents[1] / "data" / "schema.sql").read_text(encoding="utf-8"))
     con.close()
     monkeypatch.setattr(db, "DB_PATH", database)
-    monkeypatch.setattr(db, "TURSO_URL", None)
-    monkeypatch.setattr(db, "TURSO_TOKEN", None)
     monkeypatch.setattr(db, "_SQLITE_SCHEMA_CHECKED", False)
-    monkeypatch.setattr(db, "_TURSO_SCHEMA_CHECKED", False)
 
     def reject_network(*_args, **_kwargs):
         raise AssertionError("Live network access is disabled in tests; mock the transport")

@@ -16,13 +16,10 @@ root = args.root.resolve()
 sys.path.insert(0, str(root))
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
-from src import db  # noqa: E402
 import run_daily  # noqa: E402
 from src.matcher import semantic  # noqa: E402
 
 def connection():
-    if db.get_connection_provider() == "Turso":
-        return db.TursoConnection(db.TURSO_URL, db.TURSO_TOKEN)
     import sqlite3
     return sqlite3.connect((root / "data/jobs.db").as_uri() + "?mode=ro", uri=True)
 

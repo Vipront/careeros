@@ -2,6 +2,7 @@
 import argparse
 import csv
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -10,13 +11,7 @@ parser.add_argument("root", type=Path)
 parser.add_argument("output", type=Path)
 args = parser.parse_args()
 sys.path.insert(0, str(args.root.resolve()))
-from src import db  # noqa: E402
-
-if db.TURSO_URL and db.TURSO_TOKEN:
-    con = db.TursoConnection(db.TURSO_URL, db.TURSO_TOKEN)
-else:
-    import sqlite3
-    con = sqlite3.connect((args.root.resolve() / "data/jobs.db").as_uri() + "?mode=ro", uri=True)
+con = sqlite3.connect((args.root.resolve() / "data/jobs.db").as_uri() + "?mode=ro", uri=True)
 try:
     cursor = con.execute("""SELECT id,title,company,location,url,description,profile_type,
         keyword_score,semantic_score,llm_judge_result_json,version_metadata

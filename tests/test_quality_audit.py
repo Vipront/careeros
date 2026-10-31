@@ -191,37 +191,6 @@ class TestQualityAudit(unittest.TestCase):
             self.assertIsNone(kwargs.get("con"))
             self.assertTrue(kwargs.get("probe_live_if_missing"))
 
-    def test_auto_turso_select_only_no_credentials_leak(self) -> None:
-        fake_cursor = MagicMock()
-        fake_cursor.description = [("id", None), ("status", None), ("title", None)]
-        fake_cursor.fetchall.return_value = []
-
-        fake_client = MagicMock()
-        fake_client.execute.return_value = SimpleNamespace(
-            columns=["id", "status", "title"],
-            rows=[],
-            rows_affected=0,
-        )
-
-        with (
-            patch("src.db.TURSO_URL", "libsql://test.turso.io"),
-            patch("src.db.TURSO_TOKEN", "super-secret-token-123"),
-            patch("src.db.libsql_client.create_client_sync", return_value=fake_client),
-        ):
-            con, provider = get_connection_for_audit(provider="auto")
-            self.assertEqual(provider, "Turso")
-
-            # Verify no token in string representation of provider
-            self.assertNotIn("super-secret-token-123", provider)
-
-            # Table inspection uses SELECT only
-            con.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='jobs'")
-            calls = fake_client.execute.call_args_list
-            for call in calls:
-                sql = call[0][0]
-                self.assertTrue(sql.strip().upper().startswith("SELECT"), f"Expected SELECT only, got: {sql}")
-
-            con.close()
 
     def test_parse_frozen_ilanlar_unicode_headings(self) -> None:
         sample_text = (

@@ -16,7 +16,7 @@ The screenshot uses only fictional data. Its displayed scores are illustrative.
 
 - Combines keyword matching, sentence embeddings and structured LLM evaluation.
 - Checks experience, education and language requirements, and tracks uncertain evidence.
-- Uses SQLite locally, with an optional Turso/LibSQL backend.
+- Uses a local SQLite database; no hosted database account is required.
 - Tracks review and application states with an audit trail.
 - Presents a Streamlit dashboard and optional Telegram notifications.
 - Produces CV and cover-letter drafts with verification checks before review.
@@ -57,7 +57,7 @@ export DASHBOARD_PASSWORD='choose-your-local-password'
 python -m streamlit run src/dashboard.py --server.address 127.0.0.1
 ```
 
-Open `http://localhost:8501`. Do not set Turso credentials for this demo. Seeding refuses to overwrite an existing database. The offline preview and local dashboard do not run the live pipeline.
+Open `http://localhost:8501`. Seeding refuses to overwrite an existing database. The offline preview and local dashboard do not run the live pipeline.
 
 ## Full pipeline setup
 
