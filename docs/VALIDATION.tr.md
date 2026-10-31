@@ -13,6 +13,11 @@ inceleme, denetim, akış ve önbellekle ilgili 41 test geçti. Ruff `src`, `scr
 ve `tests` için geçti; çevrimdışı JSON demosu çalıştı; Gitleaks bulgu bildirmedi.
 Bu güncellemede tam regresyon paketi yeniden çalıştırılmadı.
 
+Ek düzeltme, süresi dolmuş “ilan ayrıntısı bulunamadı” önbellek kayıtlarını aynı
+geçmiş tarihle tekrarlamak yerine yeniden deniyor. Geleceğe ertelenmiş ve denemesi
+sonlandırılmış kayıtlar korunuyor. Temiz yayın kopyasında regresyon senaryoları,
+ilgili HTTP güvenliği ve akış kontrolleri dahil 28 test geçti.
+
 ## Önceki doğrulama
 
 Temiz kopya 9 Ekim 2026'da (Europe/Istanbul) doğrulandı:

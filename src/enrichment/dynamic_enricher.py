@@ -961,7 +961,7 @@ def run(limit=40):
             WHERE cache_key=?
         """, (cache_key,)).fetchone()
 
-        if cache:
+        if cache and not should_attempt(cache[0], cache[12], cache[13]):
             hit = apply_cache_hit(con, job_id, cache, cache_key)
             if hit:
                 found += 1

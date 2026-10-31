@@ -14,6 +14,11 @@ transaction, review, audit, pipeline and cache tests passed. Ruff passed for
 `src`, `scripts` and `tests`; the offline JSON demo passed; Gitleaks reported no
 findings. The complete regression suite was not rerun for this update.
 
+A follow-up fix retries expired negative enrichment-cache entries instead of
+reusing an overdue retry date indefinitely. Future retries and terminal misses
+remain cached. Its regression cases and related HTTP security and pipeline
+checks passed: 28 tests on the sanitized publication copy.
+
 ## Earlier validation
 
 Validated on 9 October 2026 (Europe/Istanbul), using the sanitized snapshot:
