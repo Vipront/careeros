@@ -18,6 +18,13 @@ geçmiş tarihle tekrarlamak yerine yeniden deniyor. Geleceğe ertelenmiş ve de
 sonlandırılmış kayıtlar korunuyor. Temiz yayın kopyasında regresyon senaryoları,
 ilgili HTTP güvenliği ve akış kontrolleri dahil 28 test geçti.
 
+Panel, giriş ve gezinme sırasında bütün uygunluk kararlarını yeniden hesaplamak
+yerine mevcut özel SQLite önbelleğini kullanıyor. Sürüm kurulurken aktif görünüm
+önceden hazırlanıyor. Arka planda yenileme, veri yaşı sınırı, profil/kural
+değişiklikleri ve durum güncellemeleri korunuyor. Bu temiz kopyada panel,
+önbellek, giriş ve kimlik doğrulamayla ilgili 29 test ve hedefli Ruff kontrolü
+geçti. Uzak veritabanı bağımlılığı eklenmedi.
+
 ## Önceki doğrulama
 
 Temiz kopya 9 Ekim 2026'da (Europe/Istanbul) doğrulandı:

@@ -146,6 +146,7 @@ if [[ "$(uname -m)" != "aarch64" || ! -f "$lockfile" ]] || \
 fi
 PIP_NO_CACHE_DIR=1 "$stage/.venv/bin/python" -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: --requirement "$lockfile"
 PYTHONPATH="$stage" "$stage/.venv/bin/python" -m src.ops.readiness
+timeout 120 env PYTHONPATH="$stage" "$stage/.venv/bin/python" -m src.dashboard_cache
 
 next_link="$root_real/.current-$release_id-$$"
 if [[ -e "$next_link" || -L "$next_link" ]]; then

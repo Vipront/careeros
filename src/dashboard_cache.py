@@ -139,7 +139,10 @@ def get_store(include_rejected=False, *, start=True):
 
 
 def get_dashboard_jobs(include_rejected=False):
-    return dashboard_data.fetch_jobs(include_rejected)
+    frame = get_store(include_rejected).read()
+    if not include_rejected and not frame.empty:
+        frame = frame[frame["status"].isin(["evaluated", "ready_for_review", "low_priority", "applied", "interview", "offer"])]
+    return frame
 
 
 def patch_cached_status(job_id, status):

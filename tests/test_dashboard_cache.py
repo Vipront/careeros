@@ -7,6 +7,24 @@ import pytest
 from src.dashboard_cache import SnapshotStore, SnapshotUnavailable
 
 
+def test_sqlite_dashboard_reads_warmed_snapshot_without_recomputing(monkeypatch, tmp_path):
+    from src import dashboard_cache
+    store = SnapshotStore(tmp_path / 'snapshot.json', 'sqlite-profile', frame, start=False)
+    store.refresh()
+    calls = []
+
+    def expensive_query(*args, **kwargs):
+        raise AssertionError('A dashboard read must not recompute every eligibility decision')
+
+    monkeypatch.setattr(dashboard_cache.dashboard_data, 'fetch_jobs', expensive_query)
+    monkeypatch.setattr(dashboard_cache, 'get_store', lambda archived=False: calls.append(archived) or store)
+    assert dashboard_cache.get_dashboard_jobs()['id'].tolist() == [1]
+    store.patch_status(1, 'rejected')
+    assert dashboard_cache.get_dashboard_jobs().empty
+    assert dashboard_cache.get_dashboard_jobs(True)['status'].tolist() == ['rejected']
+    assert calls == [False, False, True]
+
+
 def frame():
     return pd.DataFrame([{"id": 1, "title": "Synthetic", "status": "ready_for_review",
                           "can_recommend": False, "is_ready_recommendation": False}])

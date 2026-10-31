@@ -19,6 +19,13 @@ reusing an overdue retry date indefinitely. Future retries and terminal misses
 remain cached. Its regression cases and related HTTP security and pipeline
 checks passed: 28 tests on the sanitized publication copy.
 
+Dashboard reads now use the existing private SQLite snapshot store rather than
+recomputing every eligibility decision during login and navigation. Release
+preparation warms the active snapshot before activation. Background refresh,
+maximum data age, profile/rule invalidation and status changes remain covered.
+Twenty-nine dashboard, cache, login and authentication tests passed on this
+sanitized copy; targeted Ruff passed. No hosted database dependency was added.
+
 ## Earlier validation
 
 Validated on 9 October 2026 (Europe/Istanbul), using the sanitized snapshot:
